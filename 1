@@ -1,40 +1,26 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from '@auth0/auth0-angular';
-import { Observable } from 'rxjs';
-import { environment } from 'src/environments/environment';
+import { LoginService } from 'src/app/services/login.service';
 
-@Injectable({
-  providedIn: 'root'
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss']
 })
-export class LoginService {
-  language: string = '';
+export class LoginComponent implements OnInit {
 
-  constructor(
-    private readonly _http: HttpClient,
-    public auth: AuthService,
-    ) { 
-      // this.language = this.cacheService.selectLanguage()
-    }
+  constructor(public auth: AuthService,
+    private loginService: LoginService) { }
 
-  verifyToken():Observable<any>{
-    return this._http.get(`${environment.restApi}loginwebsite/verifyToken`)
+  ngOnInit() {
+    const accessToken = this.auth.getIdTokenClaims().subscribe(token => {
+      this.loginService.setCurrentUserToStorage(token?.__raw)
+      this.loginService.verifyToken().subscribe(token => {
+        console.log('verifyToken')
+      }, (err) => {
+        console.log(err)
+      })
+    });
   }
 
-  getJwtToken(){
-    try {
-      return JSON.parse(sessionStorage["token"]);
-    } catch { return; }
-  }
-
-  setCurrentUserToStorage(token: any): void{
-    sessionStorage.setItem('token', JSON.stringify(token));
-  }
-
-
-  login(lang:string) {
-    this.auth.loginWithRedirect({
-      appState: { target: `${lang}/login` }
-    })
-  }
 }
