@@ -1,0 +1,40 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { AuthService } from '@auth0/auth0-angular';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class LoginService {
+  language: string = '';
+
+  constructor(
+    private readonly _http: HttpClient,
+    public auth: AuthService,
+    ) { 
+      // this.language = this.cacheService.selectLanguage()
+    }
+
+  verifyToken():Observable<any>{
+    return this._http.get(`${environment.restApi}loginwebsite/verifyToken`)
+  }
+
+  getJwtToken(){
+    try {
+      return JSON.parse(sessionStorage["token"]);
+    } catch { return; }
+  }
+
+  setCurrentUserToStorage(token: any): void{
+    sessionStorage.setItem('token', JSON.stringify(token));
+  }
+
+
+  login(lang:string) {
+    this.auth.loginWithRedirect({
+      appState: { target: `${lang}/login` }
+    })
+  }
+}
